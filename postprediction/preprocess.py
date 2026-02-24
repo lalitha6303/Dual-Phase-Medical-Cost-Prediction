@@ -1,38 +1,46 @@
 import pandas as pd
 import joblib
 import os
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Load dataset
-df = pd.read_csv("hospital_data.csv")
+DATA_PATH = os.path.join(BASE_DIR, "hospital_data.csv")
+SCHEMA_PATH = os.path.join(BASE_DIR, "preprocessor.pkl")  # keep same name
+
+print("🔹 Loading dataset...")
+df = pd.read_csv(DATA_PATH)
 
 # Clean column names
 df.columns = df.columns.str.strip().str.replace(" ", "_")
 
-# Drop ID and target
-X = df.drop(columns=["Patient_ID", "Cost"])
+required_columns = [
+    "Age",
+    "Gender",
+    "Condition",
+    "Procedure",
+    "Length_of_Stay",
+    "Cost"
+]
 
-# Auto-detect column types
-categorical_cols = X.select_dtypes(include="object").columns.tolist()
-numerical_cols = X.select_dtypes(exclude="object").columns.tolist()
+missing = [c for c in required_columns if c not in df.columns]
+if missing:
+    raise ValueError(f"❌ Missing columns: {missing}")
 
-print("Categorical:", categorical_cols)
-print("Numerical:", numerical_cols)
+feature_columns = [
+    "Age",
+    "Gender",
+    "Condition",
+    "Procedure",
+    "Length_of_Stay"
+]
 
-# Preprocessor
-preprocessor = ColumnTransformer(
-    transformers=[
-        ("num", StandardScaler(), numerical_cols),
-        ("cat", OneHotEncoder(handle_unknown="ignore"), categorical_cols)
-    ]
-)
+categorical_cols = ["Gender", "Condition", "Procedure"]
 
-# Fit
-preprocessor.fit(X)
+schema = {
+    "feature_columns": feature_columns,
+    "categorical_cols": categorical_cols
+}
 
-# Save
-joblib.dump(preprocessor, os.path.join(BASE_DIR, "preprocessor.pkl"))
-print("✅ Preprocessing saved")
+joblib.dump(schema, SCHEMA_PATH)
+
+print("✅ preprocessor.pkl saved (schema only)")

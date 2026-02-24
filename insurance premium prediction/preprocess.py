@@ -1,8 +1,9 @@
-import pandas as pd
+import pandas as pd 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
+
 # Load dataset
 df = pd.read_csv("insurance (2) (1).csv")
 
